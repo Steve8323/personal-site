@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects · Alexander B. Chen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="projects">
+  <nav class="nav" id="nav"></nav>
+
+  <main class="page-main">
+    <header class="page-head">
+      <p class="mono-label"><a href="index.html">← home</a></p>
+      <h1>Projects</h1>
+      <p class="page-lead">Things I made because no one was going to make them for me.</p>
+    </header>
+
+    <div id="projects-list"></div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="shell.js"></script>
+  <script>
+    document.addEventListener('site:ready', (e) => {
+      const d = e.detail;
+      const projHost = document.getElementById('projects-list');
+      (d.projects || []).forEach((p) => {
+        const art = document.createElement('article');
+        art.className = 'project';
+        const h = document.createElement('h3');
+        h.textContent = p.title || '';
+        art.appendChild(h);
+        const body = document.createElement('p');
+        body.innerHTML = p.body || '';
+        art.appendChild(body);
+        if (p.link) {
+          const a = document.createElement('a');
+          a.href = p.link;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.className = 'project-link';
+          a.textContent = p.linkLabel || 'View →';
+          art.appendChild(a);
+        }
+        projHost.appendChild(art);
+      });
+    });
+  </script>
+</body>
+</html>

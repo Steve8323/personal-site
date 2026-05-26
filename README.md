@@ -1,79 +1,93 @@
-# Personal site
+# alexander-chen.vercel.app
 
-A simple, single-page personal site you can host for free on **GitHub Pages**.
-All content lives in `data.json` so you can edit it from the built-in admin panel
-without touching code.
+A multi-page personal site with a hidden admin editor. Static HTML — hosts on
+GitHub Pages or Vercel with zero build step.
 
-## Files
+## Pages
 
-- `index.html` / `styles.css` / `app.js` — the public site
-- `data.json` — all the content (name, projects, achievements, etc.)
-- `admin.html` / `admin.js` — hidden editor with passphrase gate
+| URL | What |
+|---|---|
+| `/` | Home — hero + intro + tour cards to other pages |
+| `/math.html` | Competition record, research, reading list |
+| `/projects.html` | Projects (textbook, SSAMO, etc.) |
+| `/recommendations.html` | Rated book / video / etc. recommendations |
+| `/beyond.html` | Beyond math: swimming, piano, skiing, DECA |
+| `/sessions.html` | "Problem Sessions" — apply via the form (opens email client) |
+| `/admin.html` | **Hidden** editor (passphrase-gated) |
 
-## Hosting it on GitHub Pages
+All content lives in `data.json`. Each page reads from it via `shell.js`.
 
-1. Create a new repo on GitHub (e.g. `your-username.github.io` for the simplest URL, or any other name).
-2. Upload the contents of this folder to the repo.
-3. In the repo's **Settings → Pages**, set "Source" to `Deploy from a branch` and pick `main` / `(root)`.
-4. Your site goes live at `https://<username>.github.io/` (or `https://<username>.github.io/<repo>/` for a non-default repo).
+## The hidden admin
 
-## The hidden admin panel
+Three ways to reach it from the public site:
 
-The admin page is at `admin.html` (e.g. `https://you.github.io/admin.html`). There is no
-visible link to it. Three ways to open it from the main site:
+1. Visit `/admin.html` directly
+2. Press `Cmd/Ctrl + Shift + .`
+3. Triple-click the initials in the top-left nav
 
-- **Visit `/admin.html`** directly
-- **Keyboard shortcut**: `Cmd/Ctrl + Shift + .`
-- **Triple-click the initials** in the top-left of the nav
+Default passphrase: **`changeme`** (change it from the **Passphrase** section in the admin sidebar)
 
-### Default passphrase
+### What you can edit
 
-`changeme`
+The admin sidebar is split into sections:
 
-After unlocking, scroll to the bottom of the editor and use **Change passphrase** to set
-your own. The new passphrase is stored as a SHA-256 hash in your browser's localStorage.
+- **Identity** — name, initials, subtitle, intro paragraph
+- **Sections** — *toggles* for show/hide of each page (Math, Projects, Recs, Beyond, Sessions). Hidden pages disappear from the nav but still work via direct URL.
+- **Writing link** — adds a "Substack" (or any label) pill to the top nav
+- **Home page** — the two-column blurbs on the home page
+- **Hero tags** — the pills under the intro
+- **About** / **Competitions** / **Research** / **Reading**
+- **Projects** — add/edit/reorder
+- **Recommendations** — with star ratings + categories
+- **Beyond math** — swimming etc.
+- **Sessions page** — every bit of copy on the Problem Sessions page (title, subtitle, house rules, level options, time windows, success message)
+- **Applicants** — anyone who submits the Sessions form has their info saved in your browser's localStorage; you can view it here
+- **Contact** — email + GitHub/AoPS/etc. links
+- **Passphrase** — change the admin passphrase
 
-> ⚠️ **About "security":** this is a static site, so the passphrase check happens in
-> the browser. It's enough to keep casual visitors out, but anyone with web-dev
-> skills can bypass it by reading the JS. Don't put truly private info on the site.
+## Publishing flow
 
-## How edits work
+Edits save instantly to your browser's localStorage (so you see them on
+preview), but to publish them for visitors:
 
-The admin panel saves your changes to your browser's localStorage immediately.
-This means **edits show up only in your own browser** until you publish them.
+1. In the admin, click **Export data.json**
+2. Open https://github.com/Steve8323/personal-site/blob/main/data.json on GitHub
+3. Click the pencil ✏️ icon → paste the new contents → commit
+4. Vercel auto-deploys in ~10 seconds
 
-To publish your edits for everyone:
+## Security note
 
-1. In the admin panel, click **Export data.json**.
-2. Upload the downloaded `data.json` into your GitHub repo (replacing the old one).
-   - Easiest way: on github.com, navigate to `data.json`, click the pencil ✏️ icon,
-     paste the new contents, and commit.
-3. GitHub Pages will redeploy in ~30 seconds and the public site will reflect the changes.
+The passphrase is checked entirely in the browser, so a savvy visitor could
+bypass it via DevTools. Treat it as obfuscation, not security. Don't put
+truly private info in `data.json`. The actual auth that matters is your
+GitHub account — only people with repo write access can change what gets
+published.
 
-## Adding projects / slide links
+## The Sessions form
 
-In the admin panel's **Projects** section, each project has:
+The form on `/sessions.html` doesn't have a real backend. When someone
+submits, two things happen:
 
-- Title
-- Body (short description; HTML allowed)
-- Link URL (Google Slides share link, GitHub repo, AoPS thread, PDF, etc.)
-- Link label (e.g. "View slides →")
+1. Their info is logged to `localStorage` under `sessionApps.v1` (visible
+   in the **Applicants** section of the admin — but only on the browser
+   they submitted from, since static sites have no shared store)
+2. Their email client opens with a pre-filled message to whatever email
+   address is set in **Contact** → **Email**
 
-Use **Move up / Move down** to reorder them.
+If you want real persistence later, the natural upgrade is a Vercel
+serverless function that writes to Vercel KV or sends via Resend.
 
-## Running locally
+## Local dev
 
-Open `index.html` in a browser — that's it. (For best results, serve the folder
-through a tiny local server so `fetch('data.json')` works without CORS issues:
-`python3 -m http.server 8000` then visit http://localhost:8000)
+```sh
+python3 -m http.server 8000
+# visit http://localhost:8000
+```
 
-## Resetting the admin
+## Forgot the passphrase
 
-If you forget your custom passphrase, open the browser devtools console on
-`admin.html` and run:
-
+Open devtools on `admin.html` and run:
 ```js
 localStorage.removeItem('sitePwHash.v1')
 ```
-
-The passphrase resets to `changeme`.
+It resets to `changeme`.

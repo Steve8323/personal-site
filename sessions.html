@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sessions · Alexander B. Chen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="sessions">
+  <nav class="nav" id="nav"></nav>
+
+  <main class="page-main">
+    <header class="page-head">
+      <p class="mono-label"><a href="index.html">← home</a></p>
+      <h1 id="sessions-title"></h1>
+      <p class="page-lead" id="sessions-subtitle"></p>
+    </header>
+
+    <section class="page-section">
+      <h2 class="mono-label">House rules</h2>
+      <ul class="rules-list" id="rules-list"></ul>
+    </section>
+
+    <section class="page-section" id="form-section">
+      <h2 class="mono-label">Apply</h2>
+      <form id="sessions-form" class="apply-form" novalidate>
+        <div class="form-field">
+          <label for="f-email">Email</label>
+          <input id="f-email" name="email" type="email" required autocomplete="email" placeholder="you@somewhere.edu" />
+        </div>
+
+        <fieldset class="form-field">
+          <legend>Level</legend>
+          <div class="radio-stack" id="level-radios"></div>
+        </fieldset>
+
+        <fieldset class="form-field">
+          <legend>When works for you?</legend>
+          <div class="radio-stack" id="window-radios"></div>
+        </fieldset>
+
+        <div class="form-field">
+          <label for="f-topic">What do you want to work on? <span class="muted">(optional)</span></label>
+          <textarea id="f-topic" name="topic" rows="4" placeholder="Drop a problem, a topic, or just 'whatever'."></textarea>
+        </div>
+
+        <button type="submit" class="btn primary big">Send application</button>
+        <p class="form-hint" id="form-hint"></p>
+      </form>
+    </section>
+
+    <section class="page-section success" id="success" hidden>
+      <h2 id="success-heading"></h2>
+      <p id="success-body"></p>
+      <p><a href="index.html" class="btn secondary">Back home</a></p>
+    </section>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="shell.js"></script>
+  <script>
+    document.addEventListener('site:ready', (e) => {
+      const d = e.detail;
+      const s = d.sessions || {};
+      document.getElementById('sessions-title').textContent = s.title || 'Sessions';
+      document.getElementById('sessions-subtitle').innerHTML = s.subtitle || '';
+
+      const rulesHost = document.getElementById('rules-list');
+      (s.rules || []).forEach((r) => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        rulesHost.appendChild(li);
+      });
+
+      const levelHost = document.getElementById('level-radios');
+      (s.levels || []).forEach((opt, i) => {
+        const label = document.createElement('label');
+        label.className = 'radio-row';
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'level';
+        input.value = opt;
+        if (i === 1) input.checked = true;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(' ' + opt));
+        levelHost.appendChild(label);
+      });
+
+      const winHost = document.getElementById('window-radios');
+      (s.windows || []).forEach((opt, i) => {
+        const label = document.createElement('label');
+        label.className = 'radio-row';
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'window';
+        input.value = opt;
+        if (i === 0) input.checked = true;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(' ' + opt));
+        winHost.appendChild(label);
+      });
+
+      const form = document.getElementById('sessions-form');
+      const hint = document.getElementById('form-hint');
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const fd = new FormData(form);
+        const email = (fd.get('email') || '').toString().trim();
+        const level = (fd.get('level') || '').toString();
+        const when = (fd.get('window') || '').toString();
+        const topic = (fd.get('topic') || '').toString();
+
+        if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+          hint.textContent = 'Need a real email so I can write back.';
+          return;
+        }
+
+        const target = (d.contact && d.contact.email) || '';
+        if (!target) {
+          hint.textContent = 'No destination email is set yet. Tell Alexander to fill in the contact email.';
+          return;
+        }
+        const subject = encodeURIComponent('Problem session application');
+        const body = encodeURIComponent(
+          [
+            `Hi Alexander,`,
+            ``,
+            `I'd like to apply for a problem session.`,
+            ``,
+            `Level: ${level}`,
+            `When: ${when}`,
+            ``,
+            `What I want to work on:`,
+            topic || '(nothing in particular)',
+            ``,
+            `From: ${email}`
+          ].join('\n')
+        );
+
+        // Persist locally so Alexander can see all applicants when he visits the admin
+        try {
+          const key = 'sessionApps.v1';
+          const list = JSON.parse(localStorage.getItem(key) || '[]');
+          list.push({ at: new Date().toISOString(), email, level, when, topic });
+          localStorage.setItem(key, JSON.stringify(list));
+        } catch (_) { /* ignore */ }
+
+        window.location.href = `mailto:${target}?subject=${subject}&body=${body}`;
+
+        document.getElementById('form-section').hidden = true;
+        const succ = document.getElementById('success');
+        succ.hidden = false;
+        document.getElementById('success-heading').textContent = s.successHeading || 'Got it.';
+        document.getElementById('success-body').textContent = s.successBody || '';
+        succ.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>

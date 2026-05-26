@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math · Alexander B. Chen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="math">
+  <nav class="nav" id="nav"></nav>
+
+  <main class="page-main">
+    <header class="page-head">
+      <p class="mono-label"><a href="index.html">← home</a></p>
+      <h1>Mathematics</h1>
+      <p class="page-lead">Competition record, research, and what I'm currently reading.</p>
+    </header>
+
+    <section class="page-section">
+      <h2>Competition highlights</h2>
+      <ul class="line-list" id="competition-list"></ul>
+    </section>
+
+    <section class="page-section">
+      <h2 id="research-title">Research</h2>
+      <p id="research-body"></p>
+      <p class="muted" id="research-note"></p>
+    </section>
+
+    <section class="page-section">
+      <h2>What I'm reading</h2>
+      <ul class="line-list" id="reading-list"></ul>
+    </section>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="shell.js"></script>
+  <script>
+    document.addEventListener('site:ready', (e) => {
+      const d = e.detail;
+      const compHost = document.getElementById('competition-list');
+      (d.competition || []).forEach((line) => {
+        const li = document.createElement('li');
+        li.innerHTML = line;
+        compHost.appendChild(li);
+      });
+      if (d.research) {
+        document.getElementById('research-title').textContent = d.research.title || 'Research';
+        document.getElementById('research-body').innerHTML = d.research.body || '';
+        document.getElementById('research-note').innerHTML = d.research.note || '';
+      }
+      const readHost = document.getElementById('reading-list');
+      (d.reading || []).forEach((line) => {
+        const li = document.createElement('li');
+        li.innerHTML = line;
+        readHost.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>

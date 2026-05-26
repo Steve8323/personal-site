@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beyond · Alexander B. Chen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="beyond">
+  <nav class="nav" id="nav"></nav>
+
+  <main class="page-main">
+    <header class="page-head">
+      <p class="mono-label"><a href="index.html">← home</a></p>
+      <h1>Beyond math</h1>
+      <p class="page-lead">The places I go when I don't want to think about proofs. (Sometimes I think about proofs anyway.)</p>
+    </header>
+
+    <div class="card-grid" id="activities-list"></div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="shell.js"></script>
+  <script>
+    document.addEventListener('site:ready', (e) => {
+      const d = e.detail;
+      const actHost = document.getElementById('activities-list');
+      (d.activities || []).forEach((a) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const h = document.createElement('h3');
+        h.textContent = a.title || '';
+        card.appendChild(h);
+        const p = document.createElement('p');
+        p.innerHTML = a.body || '';
+        card.appendChild(p);
+        actHost.appendChild(card);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -2,6 +2,7 @@
   "name": "Alexander B. Chen",
   "initials": "A.B.C.",
   "subtitle": "Shady Side Academy · Class of 2027",
+  "intro": "I'm a high school junior in Pittsburgh. I think about <em>why</em> things are true for a living — usually at 5:15 a.m. before swim practice, sometimes during it, and occasionally when I should be sleeping. I write proofs, write textbooks nobody asked for, and run a math olympiad I founded because the existing ones weren't enough.",
   "tagline": "Chasing the <em>why</em> behind the universe's hidden, counterintuitive rules — one proof, one lap, and one card trick at a time.",
   "writing": {
     "label": "Substack",
@@ -12,6 +13,23 @@
     "Math Club President",
     "SSAMO Founder",
     "Varsity Swimmer"
+  ],
+  "sections": {
+    "math": true,
+    "projects": true,
+    "recommendations": true,
+    "beyond": true,
+    "sessions": true
+  },
+  "homeBlurbs": [
+    {
+      "label": "What I do",
+      "body": "Mostly mathematics. Some research (random Schrödinger operators with Prof. Liu at Texas A&M). A 360-page multivariable calculus textbook I wrote because my teacher dared me to. An olympiad I founded because I thought my school needed one."
+    },
+    {
+      "label": "What I'm not doing math",
+      "body": "Swimming 16+ hours a week, playing piano badly enough to keep it humble, skiing every break, or doing self-working card tricks that are secretly modular arithmetic."
+    }
   ],
   "about": [
     "I'm a high school junior at Shady Side Academy in Pittsburgh. I treat mathematics like a language I'm trying to speak fluently — not a test I'm trying to ace. Most of what I care about lives in the gap between knowing <em>how</em> something works and understanding <em>why</em> it must.",
@@ -69,14 +87,14 @@
       "title": "Evan Chen — EGMO",
       "category": "Book",
       "rating": 5,
-      "note": "If you want to actually learn olympiad geometry instead of memorizing lemmas, start here.",
+      "note": "If you want to actually learn olympiad geometry instead of memorizing lemmas, start here. The chapter on the incenter/excenter lemma alone changed how I see triangles.",
       "link": ""
     },
     {
       "title": "Aditya Khurmi — MONT",
       "category": "Book",
       "rating": 5,
-      "note": "The number theory book I wish I'd had earlier. LTE chapter alone is worth the price.",
+      "note": "The number theory book I wish I'd had earlier. LTE chapter is worth the price by itself — taught me how to <em>not</em> fake-solve.",
       "link": ""
     },
     {
@@ -90,7 +108,7 @@
   "activities": [
     {
       "title": "Swimming",
-      "body": "~10 years competitive, 16+ hours/week. 3× WPIAL qualifier, State relay participant (6th in state). This year: chasing an individual State qualification."
+      "body": "~10 years competitive, 16+ hours/week. 3× WPIAL qualifier, State relay participant (6th in state). This year: chasing an individual State qualification. The 5:15 a.m. alarm has aged me a decade."
     },
     {
       "title": "Piano",
@@ -98,13 +116,38 @@
     },
     {
       "title": "Skiing",
-      "body": "Every winter and spring break: Vail, Breckenridge, Keystone, Whistler. A sensory counterweight to proof-work and pool laps."
+      "body": "Every winter and spring break: Vail, Breckenridge, Keystone, Whistler. A sensory counterweight to proof-work and pool laps. I will be on the slopes the same week I take USAMO and I will not apologize."
     },
     {
       "title": "DECA",
       "body": "Where I learned to speak a bulletproof argument out loud — the same confidence I used to pitch SSAMO to the school board."
     }
   ],
+  "sessions": {
+    "title": "Problem Sessions",
+    "subtitle": "Based off the office hours system at the math camp that didn't take me. I need to talk about math with someone or I'll keep dreaming about cyclic quadrilaterals. Apply below — I'll get back to you when I'm not in the pool, in class, or asleep before 9:30 p.m.",
+    "rules": [
+      "30 minutes on Zoom. I'll bring problems. You bring a notebook.",
+      "Any level from AMC-curious to olympiad-grade. I'll match the difficulty (or admit I can't).",
+      "I respond in batches on weekends. If you don't hear back in a week, I'm probably at a swim meet.",
+      "Cost: free. Bring me one (1) interesting problem in return."
+    ],
+    "levels": [
+      "Still figuring out what an integral is",
+      "AMC 10 / 12 grind",
+      "AIME — chasing the USAMO index",
+      "USAMO / Putnam / olympiad",
+      "Actual mathematician (please be gentle)"
+    ],
+    "windows": [
+      "Weekday after school (5–7 p.m. ET)",
+      "Weekend morning",
+      "Late night (post-10 p.m.)",
+      "Surprise me"
+    ],
+    "successHeading": "Got it — you're in the queue.",
+    "successBody": "Your application is opening in your email client now. Hit send and you'll hear back within a week. If you don't, assume I drowned at a meet and try again."
+  },
   "contact": {
     "blurb": "Always happy to talk math, swap problems, or trade card-trick secrets.",
     "email": "your.email@example.com",

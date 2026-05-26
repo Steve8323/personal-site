@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recs · Alexander B. Chen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="recommendations">
+  <nav class="nav" id="nav"></nav>
+
+  <main class="page-main">
+    <header class="page-head">
+      <p class="mono-label"><a href="index.html">← home</a></p>
+      <h1>Recommendations</h1>
+      <p class="page-lead">Things I've gotten more out of than I expected. Rated honestly.</p>
+    </header>
+
+    <div class="rec-grid" id="rec-list"></div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="shell.js"></script>
+  <script>
+    document.addEventListener('site:ready', (e) => {
+      const d = e.detail;
+      const recHost = document.getElementById('rec-list');
+      (d.recommendations || []).forEach((r) => {
+        const card = document.createElement('div');
+        card.className = 'rec';
+        const head = document.createElement('div');
+        head.className = 'rec-head';
+        const cat = document.createElement('span');
+        cat.className = 'rec-cat';
+        cat.textContent = r.category || '';
+        head.appendChild(cat);
+        const stars = document.createElement('span');
+        stars.className = 'rec-stars';
+        const n = Math.max(0, Math.min(5, Number(r.rating) || 0));
+        stars.textContent = '★'.repeat(n) + '☆'.repeat(5 - n);
+        stars.setAttribute('aria-label', `${n} out of 5`);
+        head.appendChild(stars);
+        card.appendChild(head);
+
+        const titleEl = document.createElement(r.link ? 'a' : 'h3');
+        if (r.link) {
+          titleEl.href = r.link;
+          titleEl.target = '_blank';
+          titleEl.rel = 'noopener';
+          titleEl.className = 'rec-title-link';
+        } else {
+          titleEl.className = 'rec-title';
+        }
+        titleEl.textContent = r.title || '';
+        card.appendChild(titleEl);
+
+        if (r.note) {
+          const note = document.createElement('p');
+          note.className = 'rec-note';
+          note.innerHTML = r.note;
+          card.appendChild(note);
+        }
+        recHost.appendChild(card);
+      });
+    });
+  </script>
+</body>
+</html>

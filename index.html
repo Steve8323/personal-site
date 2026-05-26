@@ -7,84 +7,93 @@
   <meta name="description" content="High school mathematician, USAMO qualifier, competitive swimmer." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
-  <nav class="nav">
-    <a href="#top" class="brand" id="brand">Y.N.</a>
-    <div class="nav-links" id="nav-links">
-      <a href="#about">About</a>
-      <a href="#math">Mathematics</a>
-      <a href="#projects">Projects</a>
-      <a href="#recommendations">Recs</a>
-      <a href="#beyond">Beyond Math</a>
-      <a href="#contact">Contact</a>
-      <a id="nav-writing" href="" target="_blank" rel="noopener" style="display:none"></a>
-    </div>
-  </nav>
+<body data-page="home">
+  <nav class="nav" id="nav"></nav>
 
-  <header id="top" class="hero">
+  <header class="hero">
     <div class="hero-inner">
       <p class="eyebrow" id="hero-subtitle"></p>
       <h1 id="hero-name"></h1>
-      <p class="tagline" id="hero-tagline"></p>
+      <p class="intro" id="hero-intro"></p>
       <div class="hero-tags" id="hero-tags"></div>
     </div>
   </header>
 
   <main>
-    <section id="about" class="section">
-      <h2>About</h2>
-      <div class="grid two" id="about-body"></div>
+    <section class="section split">
+      <div class="split-inner" id="home-blurbs"></div>
     </section>
 
-    <section id="math" class="section alt">
-      <h2>Mathematics</h2>
-      <div class="card-grid">
-        <div class="card">
-          <h3>Competition Highlights</h3>
-          <ul id="competition-list"></ul>
-        </div>
-        <div class="card">
-          <h3 id="research-title">Research</h3>
-          <p id="research-body"></p>
-          <p class="muted" id="research-note"></p>
-        </div>
-        <div class="card">
-          <h3>What I'm Reading</h3>
-          <ul id="reading-list"></ul>
-        </div>
+    <section class="section">
+      <div class="section-head">
+        <h2>Where to go</h2>
+        <p class="section-lead">A guided tour of the obsessions.</p>
       </div>
-    </section>
-
-    <section id="projects" class="section">
-      <h2>Projects</h2>
-      <div id="projects-list"></div>
-    </section>
-
-    <section id="recommendations" class="section">
-      <h2>Recommendations</h2>
-      <p class="section-lead" id="rec-lead">Things I've gotten more out of than I expected.</p>
-      <div class="rec-grid" id="rec-list"></div>
-    </section>
-
-    <section id="beyond" class="section alt">
-      <h2>Beyond Math</h2>
-      <div class="card-grid" id="activities-list"></div>
-    </section>
-
-    <section id="contact" class="section contact">
-      <h2>Contact</h2>
-      <p id="contact-blurb"></p>
-      <p class="contact-links" id="contact-links"></p>
+      <div class="card-grid" id="home-cards"></div>
     </section>
   </main>
 
-  <footer>
-    <p>&copy; <span id="year"></span> <span id="footer-name"></span>. Built with persistence and a single black line.</p>
-  </footer>
+  <footer id="footer"></footer>
 
-  <script src="app.js"></script>
+  <script src="shell.js"></script>
+  <script>
+    document.addEventListener('site:ready', (e) => {
+      const d = e.detail;
+      document.getElementById('hero-subtitle').textContent = d.subtitle || '';
+      document.getElementById('hero-name').textContent = d.name || '';
+      document.getElementById('hero-intro').innerHTML = d.intro || d.tagline || '';
+
+      const tagsHost = document.getElementById('hero-tags');
+      (d.heroTags || []).forEach((t) => {
+        const s = document.createElement('span');
+        s.textContent = t;
+        tagsHost.appendChild(s);
+      });
+
+      const blurbHost = document.getElementById('home-blurbs');
+      (d.homeBlurbs || []).forEach((b) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'split-item';
+        const l = document.createElement('p');
+        l.className = 'mono-label';
+        l.textContent = b.label;
+        wrap.appendChild(l);
+        const body = document.createElement('p');
+        body.innerHTML = b.body;
+        wrap.appendChild(body);
+        blurbHost.appendChild(wrap);
+      });
+
+      const cards = document.getElementById('home-cards');
+      const sections = d.sections || {};
+      const tour = [
+        { key: 'math', href: 'math.html', label: 'Math', desc: 'Competition record, research, what I read.', hint: 'USAMO · AIME · Anderson model' },
+        { key: 'projects', href: 'projects.html', label: 'Projects', desc: '360-page textbook, SSAMO, card magic, mock AMC.', hint: 'Things I made because nobody asked' },
+        { key: 'recommendations', href: 'recommendations.html', label: 'Recs', desc: 'Books, videos, problem sets — with ratings.', hint: 'Aggressively opinionated' },
+        { key: 'beyond', href: 'beyond.html', label: 'Beyond Math', desc: 'Swimming, piano, skiing, DECA.', hint: 'Where the 5:15am alarm comes in' },
+        { key: 'sessions', href: 'sessions.html', label: 'Problem Sessions', desc: 'Apply to do problems with me. Yes, really.', hint: 'Free. Bring your own pencil.' }
+      ];
+      tour.forEach((t) => {
+        if (sections[t.key] === false) return;
+        const a = document.createElement('a');
+        a.href = t.href;
+        a.className = 'tour-card';
+        const h = document.createElement('h3');
+        h.textContent = t.label;
+        a.appendChild(h);
+        const p = document.createElement('p');
+        p.textContent = t.desc;
+        a.appendChild(p);
+        const hint = document.createElement('p');
+        hint.className = 'mono-hint';
+        hint.textContent = t.hint;
+        a.appendChild(hint);
+        cards.appendChild(a);
+      });
+    });
+  </script>
 </body>
 </html>

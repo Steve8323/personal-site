@@ -7,7 +7,7 @@
   <title>·</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="admin-body">
@@ -15,25 +15,45 @@
     <h2>Enter passphrase</h2>
     <form id="gate-form">
       <input type="password" id="gate-input" autocomplete="current-password" autofocus />
-      <button type="submit">Unlock</button>
+      <button type="submit" class="btn">Unlock</button>
       <div class="err" id="gate-err"></div>
     </form>
   </div>
 
-  <div id="editor" class="admin-shell" style="display:none">
-    <h1>Site editor</h1>
-    <p class="lead">Edits save to your browser instantly. To publish them for visitors, click <strong>Export data.json</strong> and replace the file in the repo.</p>
+  <div id="editor" class="admin-layout" style="display:none">
+    <aside class="admin-side">
+      <div class="side-head">Editor</div>
+      <a href="#sec-identity" class="active">Identity</a>
+      <a href="#sec-sections">Sections</a>
+      <a href="#sec-writing">Writing link</a>
+      <a href="#sec-home">Home page</a>
+      <a href="#sec-tags">Hero tags</a>
+      <a href="#sec-about">About</a>
+      <a href="#sec-comp">Competitions</a>
+      <a href="#sec-research">Research</a>
+      <a href="#sec-reading">Reading</a>
+      <a href="#sec-projects">Projects</a>
+      <a href="#sec-recs">Recommendations</a>
+      <a href="#sec-act">Beyond math</a>
+      <a href="#sec-sessions">Sessions page</a>
+      <a href="#sec-applicants">Applicants</a>
+      <a href="#sec-contact">Contact</a>
+      <a href="#sec-pw">Passphrase</a>
+      <div class="side-foot">
+        <a href="index.html" target="_blank">View site →</a>
+        <a href="#" id="btn-logout-side">Lock</a>
+      </div>
+    </aside>
 
-    <div class="admin-toolbar">
-      <button class="btn" id="btn-export">Export data.json</button>
-      <button class="btn secondary" id="btn-reload">Reload from data.json</button>
-      <button class="btn secondary" id="btn-preview">View site</button>
-      <span class="spacer"></span>
-      <span class="status" id="save-status">Loaded</span>
-      <button class="btn danger" id="btn-logout">Lock</button>
+    <div class="admin-main">
+      <div class="admin-toolbar">
+        <button class="btn" id="btn-export">Export data.json</button>
+        <button class="btn secondary" id="btn-reload">Reload from data.json</button>
+        <span class="spacer"></span>
+        <span class="status" id="save-status">Loaded</span>
+      </div>
+      <div id="form-host"></div>
     </div>
-
-    <div id="form-host"></div>
   </div>
 
   <script src="admin.js"></script>

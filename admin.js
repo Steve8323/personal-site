@@ -2,9 +2,9 @@
   const LOCAL_KEY = 'siteData.v1';
   const AUTH_KEY = 'siteAuth.v1';
   const PW_HASH_KEY = 'sitePwHash.v1';
+  const APPS_KEY = 'sessionApps.v1';
 
   // Default passphrase: "changeme"
-  // SHA-256 of "changeme":
   const DEFAULT_PW_HASH = '057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86';
 
   async function sha256(text) {
@@ -17,17 +17,13 @@
     return localStorage.getItem(PW_HASH_KEY) || DEFAULT_PW_HASH;
   }
 
-  // ---------- gate ----------
   const gate = document.getElementById('gate');
   const editor = document.getElementById('editor');
   const gateForm = document.getElementById('gate-form');
   const gateInput = document.getElementById('gate-input');
   const gateErr = document.getElementById('gate-err');
 
-  function isAuthed() {
-    const t = sessionStorage.getItem(AUTH_KEY);
-    return t === '1';
-  }
+  function isAuthed() { return sessionStorage.getItem(AUTH_KEY) === '1'; }
 
   async function tryUnlock(pw) {
     const h = await sha256(pw);
@@ -48,28 +44,35 @@
     e.preventDefault();
     gateErr.textContent = '';
     const ok = await tryUnlock(gateInput.value);
-    if (ok) {
-      gate.style.display = 'none';
-      showEditor();
-    } else {
-      gateErr.textContent = 'Wrong passphrase.';
-      gateInput.select();
-    }
+    if (ok) { gate.style.display = 'none'; showEditor(); }
+    else { gateErr.textContent = 'Wrong passphrase.'; gateInput.select(); }
   });
 
-  document.getElementById('btn-logout')?.addEventListener('click', () => {
+  document.getElementById('btn-logout-side')?.addEventListener('click', (e) => {
+    e.preventDefault();
     sessionStorage.removeItem(AUTH_KEY);
     location.reload();
   });
 
-  // ---------- editor ----------
+  // ---- Sidebar active highlighting ----
+  const sideLinks = () => Array.from(document.querySelectorAll('.admin-side a[href^="#"]'));
+  function setActive(id) {
+    sideLinks().forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  }
+  sideLinks().forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); setActive(id); }
+    });
+  });
+
+  // ---- Editor ----
   let data = null;
 
   async function loadInitial() {
     const local = localStorage.getItem(LOCAL_KEY);
-    if (local) {
-      try { return JSON.parse(local); } catch (e) { /* fall through */ }
-    }
+    if (local) { try { return JSON.parse(local); } catch (e) { /* fall through */ } }
     const res = await fetch('data.json', { cache: 'no-cache' });
     return res.json();
   }
@@ -92,11 +95,12 @@
   function persist() {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(data));
     setStatus('Saved locally', true);
-    setTimeout(() => setStatus('Saved locally'), 1500);
+    clearTimeout(persist._t);
+    persist._t = setTimeout(() => setStatus('Saved locally'), 1500);
   }
 
   function field(label, value, onChange, opts = {}) {
-    const wrap = document.createElement('label');
+    const wrap = document.createElement('div');
     wrap.className = 'field';
     const l = document.createElement('label');
     l.textContent = label;
@@ -116,12 +120,19 @@
     return wrap;
   }
 
-  function section(title) {
+  function section(id, title, hint) {
     const s = document.createElement('section');
     s.className = 'editor-section';
+    s.id = id;
     const h = document.createElement('h3');
     h.textContent = title;
     s.appendChild(h);
+    if (hint) {
+      const p = document.createElement('p');
+      p.className = 'editor-hint';
+      p.textContent = hint;
+      s.appendChild(p);
+    }
     return s;
   }
 
@@ -134,27 +145,99 @@
     return b;
   }
 
+  function toggleRow(label, desc, checked, onChange) {
+    const row = document.createElement('div');
+    row.className = 'toggle-row';
+    const text = document.createElement('div');
+    const l = document.createElement('div');
+    l.className = 'toggle-label';
+    l.textContent = label;
+    text.appendChild(l);
+    if (desc) {
+      const d = document.createElement('div');
+      d.className = 'toggle-desc';
+      d.textContent = desc;
+      text.appendChild(d);
+    }
+    row.appendChild(text);
+    const sw = document.createElement('div');
+    sw.className = 'toggle-switch' + (checked ? ' on' : '');
+    sw.setAttribute('role', 'switch');
+    sw.setAttribute('aria-checked', String(checked));
+    sw.tabIndex = 0;
+    const flip = () => {
+      sw.classList.toggle('on');
+      const v = sw.classList.contains('on');
+      sw.setAttribute('aria-checked', String(v));
+      onChange(v);
+    };
+    sw.addEventListener('click', flip);
+    sw.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
+    row.appendChild(sw);
+    return row;
+  }
+
   function renderForm() {
     const host = document.getElementById('form-host');
     host.innerHTML = '';
 
-    // ---- Identity ----
-    const idSec = section('Identity');
+    // ---------- Identity ----------
+    const idSec = section('sec-identity', 'Identity');
     idSec.appendChild(field('Name', data.name, (v) => (data.name = v)));
-    idSec.appendChild(field('Initials (top-left nav)', data.initials, (v) => (data.initials = v)));
-    idSec.appendChild(field('Subtitle (above name)', data.subtitle, (v) => (data.subtitle = v)));
-    idSec.appendChild(field('Tagline (HTML allowed)', data.tagline, (v) => (data.tagline = v), { long: true, rows: 3 }));
+    idSec.appendChild(field('Initials (top-left brand)', data.initials, (v) => (data.initials = v)));
+    idSec.appendChild(field('Subtitle (above name on home)', data.subtitle, (v) => (data.subtitle = v)));
+    idSec.appendChild(field('Hero intro (HTML allowed) — main home paragraph', data.intro, (v) => (data.intro = v), { long: true, rows: 4 }));
     host.appendChild(idSec);
 
-    // ---- Writing / Substack ----
-    const wSec = section('Writing link (shows as a button in the top nav)');
+    // ---------- Section toggles ----------
+    const togSec = section('sec-sections', 'Sections (show / hide)', 'Each toggle controls whether the corresponding page appears in the top navigation. Pages still work via direct URL even when hidden — useful for previewing.');
+    data.sections = data.sections || {};
+    const sectionKeys = [
+      ['math', 'Math', 'Competition record, research, reading list'],
+      ['projects', 'Projects', 'Textbook, SSAMO, mock AMC, card magic'],
+      ['recommendations', 'Recommendations', 'Books, videos, etc. with star ratings'],
+      ['beyond', 'Beyond math', 'Swimming, piano, skiing, DECA'],
+      ['sessions', 'Problem Sessions', 'The "apply to do problems with me" page']
+    ];
+    sectionKeys.forEach(([key, label, desc]) => {
+      if (data.sections[key] === undefined) data.sections[key] = true;
+      togSec.appendChild(toggleRow(label, desc, !!data.sections[key], (v) => { data.sections[key] = v; persist(); }));
+    });
+    host.appendChild(togSec);
+
+    // ---------- Writing / Substack ----------
+    const wSec = section('sec-writing', 'Writing link', 'Shows as a button in the top nav. Leave URL blank to hide.');
     data.writing = data.writing || { label: 'Substack', url: '' };
     wSec.appendChild(field('Label', data.writing.label, (v) => (data.writing.label = v), { hint: 'e.g. "Substack", "Blog", "Writing"' }));
-    wSec.appendChild(field('URL', data.writing.url, (v) => (data.writing.url = v), { hint: 'Leave blank to hide the nav button.' }));
+    wSec.appendChild(field('URL', data.writing.url, (v) => (data.writing.url = v)));
     host.appendChild(wSec);
 
-    // ---- Hero tags ----
-    const tagsSec = section('Hero tags (under the tagline)');
+    // ---------- Home blurbs ----------
+    const homeSec = section('sec-home', 'Home page — two-column blurbs');
+    data.homeBlurbs = data.homeBlurbs || [];
+    function renderHome() {
+      [...homeSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
+      data.homeBlurbs.forEach((b, i) => {
+        const item = document.createElement('div');
+        item.className = 'repeat-item';
+        item.appendChild(field('Label (small caps)', b.label, (v) => { b.label = v; }));
+        item.appendChild(field('Body (HTML allowed)', b.body, (v) => { b.body = v; }, { long: true, rows: 3 }));
+        const acts = document.createElement('div');
+        acts.className = 'repeat-actions';
+        acts.appendChild(btn('Remove', () => { data.homeBlurbs.splice(i, 1); persist(); renderHome(); }, 'btn danger'));
+        item.appendChild(acts);
+        homeSec.appendChild(item);
+      });
+      const add = document.createElement('div');
+      add.className = 'add-row';
+      add.appendChild(btn('+ Add blurb', () => { data.homeBlurbs.push({ label: '', body: '' }); persist(); renderHome(); }, 'btn'));
+      homeSec.appendChild(add);
+    }
+    renderHome();
+    host.appendChild(homeSec);
+
+    // ---------- Hero tags ----------
+    const tagsSec = section('sec-tags', 'Hero tags (pills under intro)');
     data.heroTags = data.heroTags || [];
     function renderTags() {
       [...tagsSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
@@ -176,15 +259,15 @@
     renderTags();
     host.appendChild(tagsSec);
 
-    // ---- About ----
-    const aboutSec = section('About paragraphs');
+    // ---------- About ----------
+    const aboutSec = section('sec-about', 'About paragraphs');
     data.about = data.about || [];
     function renderAbout() {
       [...aboutSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
       data.about.forEach((p, i) => {
         const item = document.createElement('div');
         item.className = 'repeat-item';
-        item.appendChild(field(`Paragraph ${i + 1}`, p, (v) => { data.about[i] = v; }, { long: true, rows: 4 }));
+        item.appendChild(field(`Paragraph ${i + 1} (HTML allowed)`, p, (v) => { data.about[i] = v; }, { long: true, rows: 4 }));
         const acts = document.createElement('div');
         acts.className = 'repeat-actions';
         acts.appendChild(btn('Remove', () => { data.about.splice(i, 1); persist(); renderAbout(); }, 'btn danger'));
@@ -199,17 +282,19 @@
     renderAbout();
     host.appendChild(aboutSec);
 
-    // ---- Competition list ----
-    const compSec = section('Competition highlights');
+    // ---------- Competition ----------
+    const compSec = section('sec-comp', 'Competition highlights', 'One line per row. HTML allowed (use <strong> for the label).');
     data.competition = data.competition || [];
     function renderComp() {
       [...compSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
       data.competition.forEach((line, i) => {
         const item = document.createElement('div');
         item.className = 'repeat-item';
-        item.appendChild(field('Line (HTML allowed)', line, (v) => { data.competition[i] = v; }));
+        item.appendChild(field('Line', line, (v) => { data.competition[i] = v; }));
         const acts = document.createElement('div');
         acts.className = 'repeat-actions';
+        acts.appendChild(btn('Move up', () => { if (i > 0) { [data.competition[i - 1], data.competition[i]] = [data.competition[i], data.competition[i - 1]]; persist(); renderComp(); } }));
+        acts.appendChild(btn('Move down', () => { if (i < data.competition.length - 1) { [data.competition[i + 1], data.competition[i]] = [data.competition[i], data.competition[i + 1]]; persist(); renderComp(); } }));
         acts.appendChild(btn('Remove', () => { data.competition.splice(i, 1); persist(); renderComp(); }, 'btn danger'));
         item.appendChild(acts);
         compSec.appendChild(item);
@@ -222,16 +307,16 @@
     renderComp();
     host.appendChild(compSec);
 
-    // ---- Research ----
-    const resSec = section('Research');
+    // ---------- Research ----------
+    const resSec = section('sec-research', 'Research');
     data.research = data.research || { title: '', body: '', note: '' };
     resSec.appendChild(field('Title', data.research.title, (v) => (data.research.title = v)));
     resSec.appendChild(field('Body (HTML allowed)', data.research.body, (v) => (data.research.body = v), { long: true, rows: 5 }));
     resSec.appendChild(field('Italic note', data.research.note, (v) => (data.research.note = v), { long: true, rows: 3 }));
     host.appendChild(resSec);
 
-    // ---- Reading list ----
-    const readSec = section("What I'm reading");
+    // ---------- Reading ----------
+    const readSec = section('sec-reading', "What I'm reading");
     data.reading = data.reading || [];
     function renderRead() {
       [...readSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
@@ -253,8 +338,8 @@
     renderRead();
     host.appendChild(readSec);
 
-    // ---- Projects ----
-    const projSec = section('Projects');
+    // ---------- Projects ----------
+    const projSec = section('sec-projects', 'Projects');
     data.projects = data.projects || [];
     function renderProj() {
       [...projSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
@@ -263,8 +348,8 @@
         item.className = 'repeat-item';
         item.appendChild(field('Title', p.title, (v) => { p.title = v; }));
         item.appendChild(field('Body (HTML allowed)', p.body, (v) => { p.body = v; }, { long: true, rows: 4 }));
-        item.appendChild(field('Link URL (slides, PDF, GitHub, etc.)', p.link, (v) => { p.link = v; }, { hint: 'e.g. Google Slides share link, AoPS thread, PDF in repo' }));
-        item.appendChild(field('Link label', p.linkLabel, (v) => { p.linkLabel = v; }, { hint: 'e.g. "View slides →" — defaults to "View →"' }));
+        item.appendChild(field('Link URL', p.link, (v) => { p.link = v; }, { hint: 'Slides, PDF, GitHub, AoPS, etc.' }));
+        item.appendChild(field('Link label', p.linkLabel, (v) => { p.linkLabel = v; }, { hint: 'e.g. "View slides →"' }));
         const acts = document.createElement('div');
         acts.className = 'repeat-actions';
         acts.appendChild(btn('Move up', () => { if (i > 0) { [data.projects[i - 1], data.projects[i]] = [data.projects[i], data.projects[i - 1]]; persist(); renderProj(); } }));
@@ -281,8 +366,8 @@
     renderProj();
     host.appendChild(projSec);
 
-    // ---- Recommendations ----
-    const recSec = section('Recommendations (with ratings)');
+    // ---------- Recommendations ----------
+    const recSec = section('sec-recs', 'Recommendations (with ratings)');
     data.recommendations = data.recommendations || [];
     function renderRec() {
       [...recSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
@@ -290,10 +375,9 @@
         const item = document.createElement('div');
         item.className = 'repeat-item';
         item.appendChild(field('Title', r.title, (v) => { r.title = v; }));
-        item.appendChild(field('Category', r.category, (v) => { r.category = v; }, { hint: 'e.g. Book, Video, Course, Podcast, Tool' }));
+        item.appendChild(field('Category', r.category, (v) => { r.category = v; }, { hint: 'e.g. Book, Video, Course, Podcast' }));
 
-        // Rating selector (1-5)
-        const rateWrap = document.createElement('label');
+        const rateWrap = document.createElement('div');
         rateWrap.className = 'field';
         const rl = document.createElement('label');
         rl.textContent = 'Rating';
@@ -331,8 +415,8 @@
     renderRec();
     host.appendChild(recSec);
 
-    // ---- Activities ----
-    const actSec = section('Beyond math');
+    // ---------- Activities ----------
+    const actSec = section('sec-act', 'Beyond math');
     data.activities = data.activities || [];
     function renderAct() {
       [...actSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
@@ -355,11 +439,93 @@
     renderAct();
     host.appendChild(actSec);
 
-    // ---- Contact ----
-    const cSec = section('Contact');
+    // ---------- Sessions page copy ----------
+    const sesSec = section('sec-sessions', 'Sessions page', 'All copy on the /sessions page.');
+    data.sessions = data.sessions || { title: '', subtitle: '', rules: [], levels: [], windows: [], successHeading: '', successBody: '' };
+    sesSec.appendChild(field('Title', data.sessions.title, (v) => (data.sessions.title = v)));
+    sesSec.appendChild(field('Subtitle (HTML allowed)', data.sessions.subtitle, (v) => (data.sessions.subtitle = v), { long: true, rows: 4 }));
+
+    function repeatable(label, key, addLabel) {
+      const wrap = document.createElement('div');
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:block;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 6px';
+      lbl.textContent = label;
+      wrap.appendChild(lbl);
+      const list = document.createElement('div');
+      function r() {
+        list.innerHTML = '';
+        (data.sessions[key] || []).forEach((line, i) => {
+          const item = document.createElement('div');
+          item.className = 'repeat-item';
+          item.appendChild(field('Line', line, (v) => { data.sessions[key][i] = v; }));
+          const acts = document.createElement('div');
+          acts.className = 'repeat-actions';
+          acts.appendChild(btn('Remove', () => { data.sessions[key].splice(i, 1); persist(); r(); }, 'btn danger'));
+          item.appendChild(acts);
+          list.appendChild(item);
+        });
+        const add = document.createElement('div');
+        add.className = 'add-row';
+        add.appendChild(btn(addLabel, () => { data.sessions[key] = data.sessions[key] || []; data.sessions[key].push(''); persist(); r(); }, 'btn'));
+        list.appendChild(add);
+      }
+      r();
+      wrap.appendChild(list);
+      return wrap;
+    }
+    sesSec.appendChild(repeatable('House rules', 'rules', '+ Add rule'));
+    sesSec.appendChild(repeatable('Level options', 'levels', '+ Add level'));
+    sesSec.appendChild(repeatable('Time windows', 'windows', '+ Add window'));
+    sesSec.appendChild(field('Success heading (after submit)', data.sessions.successHeading, (v) => (data.sessions.successHeading = v)));
+    sesSec.appendChild(field('Success body', data.sessions.successBody, (v) => (data.sessions.successBody = v), { long: true, rows: 3 }));
+    host.appendChild(sesSec);
+
+    // ---------- Applicants viewer ----------
+    const appSec = section('sec-applicants', 'Sessions applicants (stored in this browser)', 'Applications submitted through the Sessions form are saved here. (They also open the visitor\'s email client to send the actual email.)');
+    function renderApps() {
+      [...appSec.querySelectorAll('.applicant-row, .add-row, .editor-hint + p')].forEach((n) => n.remove());
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem(APPS_KEY) || '[]'); } catch (e) {}
+      if (!list.length) {
+        const empty = document.createElement('p');
+        empty.style.cssText = 'color:var(--muted);font-size:14px;margin:8px 0 14px';
+        empty.textContent = 'No applications yet.';
+        appSec.appendChild(empty);
+      } else {
+        list.slice().reverse().forEach((a) => {
+          const row = document.createElement('div');
+          row.className = 'applicant-row';
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.textContent = `${new Date(a.at).toLocaleString()} · ${a.email}`;
+          row.appendChild(meta);
+          const info = document.createElement('div');
+          info.style.marginTop = '4px';
+          info.innerHTML = `<strong>${a.level || ''}</strong> · ${a.when || ''}`;
+          row.appendChild(info);
+          if (a.topic) {
+            const t = document.createElement('div');
+            t.className = 'topic';
+            t.textContent = a.topic;
+            row.appendChild(t);
+          }
+          appSec.appendChild(row);
+        });
+      }
+      const acts = document.createElement('div');
+      acts.className = 'add-row';
+      acts.appendChild(btn('Refresh', renderApps, 'btn secondary'));
+      acts.appendChild(btn('Clear all', () => { if (confirm('Delete all stored applications?')) { localStorage.removeItem(APPS_KEY); renderApps(); } }, 'btn danger'));
+      appSec.appendChild(acts);
+    }
+    renderApps();
+    host.appendChild(appSec);
+
+    // ---------- Contact ----------
+    const cSec = section('sec-contact', 'Contact');
     data.contact = data.contact || { blurb: '', email: '', links: [] };
     cSec.appendChild(field('Blurb', data.contact.blurb, (v) => (data.contact.blurb = v)));
-    cSec.appendChild(field('Email', data.contact.email, (v) => (data.contact.email = v)));
+    cSec.appendChild(field('Email', data.contact.email, (v) => (data.contact.email = v), { hint: 'Also used as the destination for Sessions applications.' }));
     const linksWrap = document.createElement('div');
     function renderLinks() {
       linksWrap.innerHTML = '';
@@ -383,8 +549,8 @@
     cSec.appendChild(linksWrap);
     host.appendChild(cSec);
 
-    // ---- Password ----
-    const pSec = section('Change passphrase (this browser only)');
+    // ---------- Passphrase ----------
+    const pSec = section('sec-pw', 'Change passphrase', 'Stored as a SHA-256 hash in this browser only. Clearing browser data resets to the default ("changeme").');
     const pInput = document.createElement('input');
     pInput.type = 'password';
     pInput.placeholder = 'New passphrase';
@@ -392,23 +558,25 @@
     pSec.appendChild(pInput);
     const pStatus = document.createElement('div');
     pStatus.className = 'hint';
-    pStatus.textContent = 'Stored as SHA-256 hash in this browser. Clearing browser data resets it to the default ("changeme").';
     pSec.appendChild(pStatus);
-    const pBtn = btn('Update passphrase', async () => {
-      if (!pInput.value || pInput.value.length < 4) {
-        pStatus.textContent = 'Pick something at least 4 characters.';
-        return;
-      }
+    pSec.appendChild(btn('Update passphrase', async () => {
+      if (!pInput.value || pInput.value.length < 4) { pStatus.textContent = 'Pick something at least 4 characters.'; return; }
       const h = await sha256(pInput.value);
       localStorage.setItem(PW_HASH_KEY, h);
       pInput.value = '';
       pStatus.textContent = 'Passphrase updated in this browser.';
-    }, 'btn');
-    pSec.appendChild(pBtn);
+    }, 'btn'));
     host.appendChild(pSec);
+
+    // Scroll-spy
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) setActive(e.target.id);
+      });
+    }, { rootMargin: '-40% 0% -55% 0%' });
+    host.querySelectorAll('.editor-section').forEach((s) => obs.observe(s));
   }
 
-  // ---- Toolbar actions ----
   document.getElementById('btn-export').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -424,9 +592,5 @@
     data = null;
     await showEditor();
     setStatus('Reloaded from data.json', true);
-  });
-
-  document.getElementById('btn-preview').addEventListener('click', () => {
-    window.open('index.html', '_blank');
   });
 })();
