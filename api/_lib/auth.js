@@ -38,8 +38,12 @@ async function readBlobJson() {
     const parsed = JSON.parse(text);
     return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
-    if (err && err.name === 'BlobNotFoundError') return [];
-    if (String(err).includes('404')) return [];
+    const msg = String(err && (err.message || err));
+    if (
+      (err && err.name === 'BlobNotFoundError') ||
+      msg.includes('does not exist') ||
+      msg.includes('404')
+    ) return [];
     throw err;
   }
 }
