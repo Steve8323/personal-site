@@ -64,6 +64,61 @@
       readHost.appendChild(li);
     });
 
+    // Writing / Substack nav link
+    const navWriting = document.getElementById('nav-writing');
+    if (navWriting) {
+      if (data.writing && data.writing.url) {
+        navWriting.href = data.writing.url;
+        navWriting.textContent = data.writing.label || 'Writing';
+        navWriting.style.display = '';
+      } else {
+        navWriting.style.display = 'none';
+      }
+    }
+
+    // Recommendations
+    const recHost = document.getElementById('rec-list');
+    if (recHost) {
+      recHost.innerHTML = '';
+      (data.recommendations || []).forEach((r) => {
+        const card = document.createElement('div');
+        card.className = 'rec';
+        const head = document.createElement('div');
+        head.className = 'rec-head';
+        const cat = document.createElement('span');
+        cat.className = 'rec-cat';
+        cat.textContent = r.category || '';
+        head.appendChild(cat);
+        const stars = document.createElement('span');
+        stars.className = 'rec-stars';
+        const n = Math.max(0, Math.min(5, Number(r.rating) || 0));
+        stars.textContent = '★'.repeat(n) + '☆'.repeat(5 - n);
+        stars.setAttribute('aria-label', `${n} out of 5`);
+        head.appendChild(stars);
+        card.appendChild(head);
+
+        const titleEl = document.createElement(r.link ? 'a' : 'h3');
+        if (r.link) {
+          titleEl.href = r.link;
+          titleEl.target = '_blank';
+          titleEl.rel = 'noopener';
+          titleEl.className = 'rec-title-link';
+        } else {
+          titleEl.className = 'rec-title';
+        }
+        titleEl.textContent = r.title || '';
+        card.appendChild(titleEl);
+
+        if (r.note) {
+          const note = document.createElement('p');
+          note.className = 'rec-note';
+          note.innerHTML = r.note;
+          card.appendChild(note);
+        }
+        recHost.appendChild(card);
+      });
+    }
+
     const projHost = document.getElementById('projects-list');
     projHost.innerHTML = '';
     (data.projects || []).forEach((p) => {

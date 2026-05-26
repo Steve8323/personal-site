@@ -146,6 +146,13 @@
     idSec.appendChild(field('Tagline (HTML allowed)', data.tagline, (v) => (data.tagline = v), { long: true, rows: 3 }));
     host.appendChild(idSec);
 
+    // ---- Writing / Substack ----
+    const wSec = section('Writing link (shows as a button in the top nav)');
+    data.writing = data.writing || { label: 'Substack', url: '' };
+    wSec.appendChild(field('Label', data.writing.label, (v) => (data.writing.label = v), { hint: 'e.g. "Substack", "Blog", "Writing"' }));
+    wSec.appendChild(field('URL', data.writing.url, (v) => (data.writing.url = v), { hint: 'Leave blank to hide the nav button.' }));
+    host.appendChild(wSec);
+
     // ---- Hero tags ----
     const tagsSec = section('Hero tags (under the tagline)');
     data.heroTags = data.heroTags || [];
@@ -273,6 +280,56 @@
     }
     renderProj();
     host.appendChild(projSec);
+
+    // ---- Recommendations ----
+    const recSec = section('Recommendations (with ratings)');
+    data.recommendations = data.recommendations || [];
+    function renderRec() {
+      [...recSec.querySelectorAll('.repeat-item, .add-row')].forEach((n) => n.remove());
+      data.recommendations.forEach((r, i) => {
+        const item = document.createElement('div');
+        item.className = 'repeat-item';
+        item.appendChild(field('Title', r.title, (v) => { r.title = v; }));
+        item.appendChild(field('Category', r.category, (v) => { r.category = v; }, { hint: 'e.g. Book, Video, Course, Podcast, Tool' }));
+
+        // Rating selector (1-5)
+        const rateWrap = document.createElement('label');
+        rateWrap.className = 'field';
+        const rl = document.createElement('label');
+        rl.textContent = 'Rating';
+        rateWrap.appendChild(rl);
+        const sel = document.createElement('select');
+        sel.style.cssText = 'width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:var(--font-sans);background:var(--bg)';
+        [1, 2, 3, 4, 5].forEach((n) => {
+          const opt = document.createElement('option');
+          opt.value = n;
+          opt.textContent = `${'★'.repeat(n)}${'☆'.repeat(5 - n)}  (${n}/5)`;
+          if (Number(r.rating) === n) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        if (!r.rating) sel.value = '5';
+        sel.addEventListener('change', () => { r.rating = Number(sel.value); persist(); });
+        rateWrap.appendChild(sel);
+        item.appendChild(rateWrap);
+
+        item.appendChild(field('Note (HTML allowed)', r.note, (v) => { r.note = v; }, { long: true, rows: 3 }));
+        item.appendChild(field('Link (optional)', r.link, (v) => { r.link = v; }, { hint: 'If set, the title becomes a clickable link.' }));
+
+        const acts = document.createElement('div');
+        acts.className = 'repeat-actions';
+        acts.appendChild(btn('Move up', () => { if (i > 0) { [data.recommendations[i - 1], data.recommendations[i]] = [data.recommendations[i], data.recommendations[i - 1]]; persist(); renderRec(); } }));
+        acts.appendChild(btn('Move down', () => { if (i < data.recommendations.length - 1) { [data.recommendations[i + 1], data.recommendations[i]] = [data.recommendations[i], data.recommendations[i + 1]]; persist(); renderRec(); } }));
+        acts.appendChild(btn('Remove', () => { data.recommendations.splice(i, 1); persist(); renderRec(); }, 'btn danger'));
+        item.appendChild(acts);
+        recSec.appendChild(item);
+      });
+      const add = document.createElement('div');
+      add.className = 'add-row';
+      add.appendChild(btn('+ Add recommendation', () => { data.recommendations.push({ title: '', category: 'Book', rating: 5, note: '', link: '' }); persist(); renderRec(); }, 'btn'));
+      recSec.appendChild(add);
+    }
+    renderRec();
+    host.appendChild(recSec);
 
     // ---- Activities ----
     const actSec = section('Beyond math');

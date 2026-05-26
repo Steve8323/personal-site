@@ -3,6 +3,10 @@
   "initials": "A.B.C.",
   "subtitle": "Shady Side Academy · Class of 2027",
   "tagline": "Chasing the <em>why</em> behind the universe's hidden, counterintuitive rules — one proof, one lap, and one card trick at a time.",
+  "writing": {
+    "label": "Substack",
+    "url": ""
+  },
   "heroTags": [
     "USAMO Qualifier 2026",
     "Math Club President",
@@ -58,6 +62,29 @@
       "body": "A COVID-era rabbit hole that became a teaching tool. I invent tricks rooted in modular arithmetic and combinatorial invariants — including a routine that's really just linear congruences mod 52 — and run them for kids at my local Chinese school.",
       "link": "",
       "linkLabel": ""
+    }
+  ],
+  "recommendations": [
+    {
+      "title": "Evan Chen — EGMO",
+      "category": "Book",
+      "rating": 5,
+      "note": "If you want to actually learn olympiad geometry instead of memorizing lemmas, start here.",
+      "link": ""
+    },
+    {
+      "title": "Aditya Khurmi — MONT",
+      "category": "Book",
+      "rating": 5,
+      "note": "The number theory book I wish I'd had earlier. LTE chapter alone is worth the price.",
+      "link": ""
+    },
+    {
+      "title": "3Blue1Brown — Essence of Linear Algebra",
+      "category": "Video series",
+      "rating": 5,
+      "note": "The visual intuition I tried to pour into my multivariable textbook started here.",
+      "link": "https://www.3blue1brown.com/topics/linear-algebra"
     }
   ],
   "activities": [
