@@ -1,11 +1,7 @@
 (async function () {
   const LOCAL_KEY = 'siteData.v1';
-  const AUTH_KEY = 'siteAuth.v1';
-  const PW_HASH_KEY = 'sitePwHash.v1';
-  const APPS_KEY = 'sessionApps.v1';
-
-  // Default passphrase: "changeme"
-  const DEFAULT_PW_HASH = '057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86';
+  const TOKEN_KEY = 'siteAdminToken.v1';
+  const APPS_LOCAL_KEY = 'sessionApps.v1';
 
   async function sha256(text) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -13,8 +9,51 @@
       .map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
-  function getActiveHash() {
-    return localStorage.getItem(PW_HASH_KEY) || DEFAULT_PW_HASH;
+  function getToken() { return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY); }
+
+  async function apiVerify(passphrase) {
+    const r = await fetch('/api/admin/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passphrase })
+    });
+    if (r.status === 200) {
+      const j = await r.json();
+      return { ok: true, token: j.token };
+    }
+    if (r.status === 500) {
+      const j = await r.json().catch(() => ({}));
+      return { ok: false, configError: j.error || 'server not configured' };
+    }
+    return { ok: false };
+  }
+
+  async function apiListApps() {
+    const token = getToken();
+    if (!token) throw new Error('no token');
+    const r = await fetch('/api/sessions/list', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (r.status === 401) { sessionStorage.removeItem(TOKEN_KEY); throw new Error('unauthorized'); }
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.error || `error ${r.status}`);
+    }
+    return r.json();
+  }
+
+  async function apiClearApps() {
+    const token = getToken();
+    if (!token) throw new Error('no token');
+    const r = await fetch('/api/sessions/clear', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.error || `error ${r.status}`);
+    }
+    return r.json();
   }
 
   const gate = document.getElementById('gate');
@@ -23,18 +62,17 @@
   const gateInput = document.getElementById('gate-input');
   const gateErr = document.getElementById('gate-err');
 
-  function isAuthed() { return sessionStorage.getItem(AUTH_KEY) === '1'; }
-
-  async function tryUnlock(pw) {
-    const h = await sha256(pw);
-    if (h === getActiveHash()) {
-      sessionStorage.setItem(AUTH_KEY, '1');
-      return true;
-    }
-    return false;
+  async function isAuthed() {
+    const token = getToken();
+    if (!token) return false;
+    // Confirm token is still valid by hitting a small protected endpoint
+    try {
+      const r = await fetch('/api/sessions/list', { headers: { Authorization: `Bearer ${token}` } });
+      return r.status !== 401;
+    } catch (_) { return false; }
   }
 
-  if (isAuthed()) {
+  if (await isAuthed()) {
     showEditor();
   } else {
     gate.style.display = '';
@@ -43,14 +81,22 @@
   gateForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     gateErr.textContent = '';
-    const ok = await tryUnlock(gateInput.value);
-    if (ok) { gate.style.display = 'none'; showEditor(); }
-    else { gateErr.textContent = 'Wrong passphrase.'; gateInput.select(); }
+    const result = await apiVerify(gateInput.value);
+    if (result.ok) {
+      sessionStorage.setItem(TOKEN_KEY, result.token);
+      gate.style.display = 'none';
+      showEditor();
+    } else if (result.configError) {
+      gateErr.textContent = 'Server passphrase not configured yet. Set the ADMIN_PASSPHRASE env var on Vercel.';
+    } else {
+      gateErr.textContent = 'Wrong passphrase.';
+      gateInput.select();
+    }
   });
 
   document.getElementById('btn-logout-side')?.addEventListener('click', (e) => {
     e.preventDefault();
-    sessionStorage.removeItem(AUTH_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
     location.reload();
   });
 
@@ -481,41 +527,66 @@
     host.appendChild(sesSec);
 
     // ---------- Applicants viewer ----------
-    const appSec = section('sec-applicants', 'Sessions applicants (stored in this browser)', 'Applications submitted through the Sessions form are saved here. (They also open the visitor\'s email client to send the actual email.)');
-    function renderApps() {
-      [...appSec.querySelectorAll('.applicant-row, .add-row, .editor-hint + p')].forEach((n) => n.remove());
-      let list = [];
-      try { list = JSON.parse(localStorage.getItem(APPS_KEY) || '[]'); } catch (e) {}
-      if (!list.length) {
-        const empty = document.createElement('p');
-        empty.style.cssText = 'color:var(--muted);font-size:14px;margin:8px 0 14px';
-        empty.textContent = 'No applications yet.';
-        appSec.appendChild(empty);
-      } else {
-        list.slice().reverse().forEach((a) => {
-          const row = document.createElement('div');
-          row.className = 'applicant-row';
-          const meta = document.createElement('div');
-          meta.className = 'meta';
-          meta.textContent = `${new Date(a.at).toLocaleString()} · ${a.email}`;
-          row.appendChild(meta);
-          const info = document.createElement('div');
-          info.style.marginTop = '4px';
-          info.innerHTML = `<strong>${a.level || ''}</strong> · ${a.when || ''}`;
-          row.appendChild(info);
-          if (a.topic) {
-            const t = document.createElement('div');
-            t.className = 'topic';
-            t.textContent = a.topic;
-            row.appendChild(t);
-          }
-          appSec.appendChild(row);
-        });
+    const appSec = section('sec-applicants', 'Sessions applicants', 'Applications submitted through the public Sessions form, stored server-side.');
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    async function renderApps() {
+      [...appSec.querySelectorAll('.applicant-row, .add-row, .applicants-msg')].forEach((n) => n.remove());
+
+      const msg = document.createElement('p');
+      msg.className = 'applicants-msg';
+      msg.style.cssText = 'color:var(--muted);font-size:14px;margin:8px 0 14px';
+      msg.textContent = 'Loading…';
+      appSec.appendChild(msg);
+
+      let items = [];
+      let serverWorks = false;
+      try {
+        const r = await apiListApps();
+        items = r.items || [];
+        serverWorks = true;
+        msg.textContent = items.length ? `${items.length} application${items.length === 1 ? '' : 's'}.` : 'No applications yet.';
+      } catch (err) {
+        msg.textContent = 'Server unavailable: ' + err.message + '. Showing any local fallback entries.';
+        try { items = JSON.parse(localStorage.getItem(APPS_LOCAL_KEY) || '[]').slice().reverse(); } catch (_) {}
       }
+
+      items.forEach((a) => {
+        const row = document.createElement('div');
+        row.className = 'applicant-row';
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = `${a.at ? new Date(a.at).toLocaleString() : '?'} · ${a.email || '(no email)'}`;
+        row.appendChild(meta);
+        const info = document.createElement('div');
+        info.style.marginTop = '4px';
+        info.innerHTML = `<strong>${escapeHtml(a.level || '')}</strong>${a.when ? ' · ' + escapeHtml(a.when) : ''}`;
+        row.appendChild(info);
+        if (a.topic) {
+          const t = document.createElement('div');
+          t.className = 'topic';
+          t.textContent = a.topic;
+          row.appendChild(t);
+        }
+        appSec.appendChild(row);
+      });
+
       const acts = document.createElement('div');
       acts.className = 'add-row';
       acts.appendChild(btn('Refresh', renderApps, 'btn secondary'));
-      acts.appendChild(btn('Clear all', () => { if (confirm('Delete all stored applications?')) { localStorage.removeItem(APPS_KEY); renderApps(); } }, 'btn danger'));
+      if (serverWorks) {
+        acts.appendChild(btn('Clear all (server)', async () => {
+          if (!confirm('Delete ALL applications from the server? This cannot be undone.')) return;
+          try { await apiClearApps(); await renderApps(); }
+          catch (err) { alert('Clear failed: ' + err.message); }
+        }, 'btn danger'));
+      }
+      if (localStorage.getItem(APPS_LOCAL_KEY)) {
+        acts.appendChild(btn('Clear local fallback', () => {
+          localStorage.removeItem(APPS_LOCAL_KEY);
+          renderApps();
+        }, 'btn danger'));
+      }
       appSec.appendChild(acts);
     }
     renderApps();
@@ -550,22 +621,15 @@
     host.appendChild(cSec);
 
     // ---------- Passphrase ----------
-    const pSec = section('sec-pw', 'Change passphrase', 'Stored as a SHA-256 hash in this browser only. Clearing browser data resets to the default ("changeme").');
-    const pInput = document.createElement('input');
-    pInput.type = 'password';
-    pInput.placeholder = 'New passphrase';
-    pInput.style.cssText = 'width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;';
-    pSec.appendChild(pInput);
-    const pStatus = document.createElement('div');
-    pStatus.className = 'hint';
-    pSec.appendChild(pStatus);
-    pSec.appendChild(btn('Update passphrase', async () => {
-      if (!pInput.value || pInput.value.length < 4) { pStatus.textContent = 'Pick something at least 4 characters.'; return; }
-      const h = await sha256(pInput.value);
-      localStorage.setItem(PW_HASH_KEY, h);
-      pInput.value = '';
-      pStatus.textContent = 'Passphrase updated in this browser.';
-    }, 'btn'));
+    const pSec = section('sec-pw', 'Passphrase', 'The admin passphrase is the ADMIN_PASSPHRASE environment variable on Vercel. To change it, run on the command line:');
+    const code = document.createElement('pre');
+    code.style.cssText = 'background:var(--bg-alt);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--font-mono);font-size:13px;overflow-x:auto;margin:0 0 12px';
+    code.textContent = 'vercel env rm ADMIN_PASSPHRASE production\nvercel env add ADMIN_PASSPHRASE production\n# (paste new passphrase, then redeploy)\nvercel deploy --prod';
+    pSec.appendChild(code);
+    const note = document.createElement('p');
+    note.style.cssText = 'color:var(--muted);font-size:13px;margin:0';
+    note.textContent = 'Or use the Vercel dashboard → Settings → Environment Variables.';
+    pSec.appendChild(note);
     host.appendChild(pSec);
 
     // Scroll-spy

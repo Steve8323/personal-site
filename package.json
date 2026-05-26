@@ -1,0 +1,10 @@
+{
+  "name": "alexander-chen-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal site with serverless backend for Problem Sessions applications.",
+  "dependencies": {
+    "@vercel/blob": "^2.4.0"
+  }
+}

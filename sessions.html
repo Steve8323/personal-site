@@ -106,56 +106,60 @@
 
       const form = document.getElementById('sessions-form');
       const hint = document.getElementById('form-hint');
-      form.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-        const fd = new FormData(form);
-        const email = (fd.get('email') || '').toString().trim();
-        const level = (fd.get('level') || '').toString();
-        const when = (fd.get('window') || '').toString();
-        const topic = (fd.get('topic') || '').toString();
+      const submitBtn = form.querySelector('button[type="submit"]');
 
-        if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        hint.textContent = '';
+        const fd = new FormData(form);
+        const payload = {
+          email: (fd.get('email') || '').toString().trim(),
+          level: (fd.get('level') || '').toString(),
+          when: (fd.get('window') || '').toString(),
+          topic: (fd.get('topic') || '').toString()
+        };
+
+        if (!payload.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.email)) {
           hint.textContent = 'Need a real email so I can write back.';
           return;
         }
 
-        const target = (d.contact && d.contact.email) || '';
-        if (!target) {
-          hint.textContent = 'No destination email is set yet. Tell Alexander to fill in the contact email.';
-          return;
-        }
-        const subject = encodeURIComponent('Problem session application');
-        const body = encodeURIComponent(
-          [
-            `Hi Alexander,`,
-            ``,
-            `I'd like to apply for a problem session.`,
-            ``,
-            `Level: ${level}`,
-            `When: ${when}`,
-            ``,
-            `What I want to work on:`,
-            topic || '(nothing in particular)',
-            ``,
-            `From: ${email}`
-          ].join('\n')
-        );
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending…';
 
-        // Persist locally so Alexander can see all applicants when he visits the admin
+        let stored = false;
         try {
-          const key = 'sessionApps.v1';
-          const list = JSON.parse(localStorage.getItem(key) || '[]');
-          list.push({ at: new Date().toISOString(), email, level, when, topic });
-          localStorage.setItem(key, JSON.stringify(list));
-        } catch (_) { /* ignore */ }
+          const r = await fetch('/api/sessions/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (r.ok) stored = true;
+          else {
+            const j = await r.json().catch(() => ({}));
+            console.warn('submit failed', j);
+          }
+        } catch (err) {
+          console.warn('submit error', err);
+        }
 
-        window.location.href = `mailto:${target}?subject=${subject}&body=${body}`;
+        if (!stored) {
+          // Fallback: keep local copy so it isn't lost
+          try {
+            const key = 'sessionApps.v1';
+            const list = JSON.parse(localStorage.getItem(key) || '[]');
+            list.push({ at: new Date().toISOString(), ...payload });
+            localStorage.setItem(key, JSON.stringify(list));
+          } catch (_) {}
+        }
 
         document.getElementById('form-section').hidden = true;
         const succ = document.getElementById('success');
         succ.hidden = false;
         document.getElementById('success-heading').textContent = s.successHeading || 'Got it.';
-        document.getElementById('success-body').textContent = s.successBody || '';
+        let body = s.successBody || '';
+        if (!stored) body += ' (Note: the server didn\'t respond, so your reply landed in a local fallback. Alexander will see it on this browser only.)';
+        document.getElementById('success-body').textContent = body;
         succ.scrollIntoView({ behavior: 'smooth' });
       });
     });
