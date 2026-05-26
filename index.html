@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Site</title>
+  <meta name="description" content="High school mathematician, USAMO qualifier, competitive swimmer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="nav">
+    <a href="#top" class="brand" id="brand">Y.N.</a>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#math">Mathematics</a>
+      <a href="#projects">Projects</a>
+      <a href="#beyond">Beyond Math</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </nav>
+
+  <header id="top" class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow" id="hero-subtitle"></p>
+      <h1 id="hero-name"></h1>
+      <p class="tagline" id="hero-tagline"></p>
+      <div class="hero-tags" id="hero-tags"></div>
+    </div>
+  </header>
+
+  <main>
+    <section id="about" class="section">
+      <h2>About</h2>
+      <div class="grid two" id="about-body"></div>
+    </section>
+
+    <section id="math" class="section alt">
+      <h2>Mathematics</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>Competition Highlights</h3>
+          <ul id="competition-list"></ul>
+        </div>
+        <div class="card">
+          <h3 id="research-title">Research</h3>
+          <p id="research-body"></p>
+          <p class="muted" id="research-note"></p>
+        </div>
+        <div class="card">
+          <h3>What I'm Reading</h3>
+          <ul id="reading-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects" class="section">
+      <h2>Projects</h2>
+      <div id="projects-list"></div>
+    </section>
+
+    <section id="beyond" class="section alt">
+      <h2>Beyond Math</h2>
+      <div class="card-grid" id="activities-list"></div>
+    </section>
+
+    <section id="contact" class="section contact">
+      <h2>Contact</h2>
+      <p id="contact-blurb"></p>
+      <p class="contact-links" id="contact-links"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; <span id="year"></span> <span id="footer-name"></span>. Built with persistence and a single black line.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

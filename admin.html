@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>·</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-body">
+  <div id="gate" class="gate">
+    <h2>Enter passphrase</h2>
+    <form id="gate-form">
+      <input type="password" id="gate-input" autocomplete="current-password" autofocus />
+      <button type="submit">Unlock</button>
+      <div class="err" id="gate-err"></div>
+    </form>
+  </div>
+
+  <div id="editor" class="admin-shell" style="display:none">
+    <h1>Site editor</h1>
+    <p class="lead">Edits save to your browser instantly. To publish them for visitors, click <strong>Export data.json</strong> and replace the file in the repo.</p>
+
+    <div class="admin-toolbar">
+      <button class="btn" id="btn-export">Export data.json</button>
+      <button class="btn secondary" id="btn-reload">Reload from data.json</button>
+      <button class="btn secondary" id="btn-preview">View site</button>
+      <span class="spacer"></span>
+      <span class="status" id="save-status">Loaded</span>
+      <button class="btn danger" id="btn-logout">Lock</button>
+    </div>
+
+    <div id="form-host"></div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

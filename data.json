@@ -1,0 +1,89 @@
+{
+  "name": "Your Name",
+  "initials": "Y.N.",
+  "subtitle": "Shady Side Academy · Class of 20XX",
+  "tagline": "Chasing the <em>why</em> behind the universe's hidden, counterintuitive rules — one proof, one lap, and one card trick at a time.",
+  "heroTags": [
+    "USAMO Qualifier 2026",
+    "Math Club President",
+    "SSAMO Founder",
+    "Varsity Swimmer"
+  ],
+  "about": [
+    "I'm a high school junior at Shady Side Academy in Pittsburgh. I treat mathematics like a language I'm trying to speak fluently — not a test I'm trying to ace. Most of what I care about lives in the gap between knowing <em>how</em> something works and understanding <em>why</em> it must.",
+    "Outside the classroom you'll find me swimming 16+ hours a week, writing problems for the math olympiad I founded, working on a research project in random Schrödinger operators, or quietly losing at piano sight-reading."
+  ],
+  "competition": [
+    "<strong>USAMO Qualifier</strong> — 2026",
+    "<strong>AIME</strong>: 12 (2026 I), 8 (2025 I), 5 (2024 I)",
+    "<strong>AMC 12</strong>: 127.5 (2025 12B, top 5%), 117 (2025 12A)",
+    "<strong>AMC 10</strong>: 115.5 (2023 10A, top 5%)",
+    "<strong>USAMTS</strong>: 74 total (25 / 24 / 25)",
+    "<strong>MathLeague</strong>: Internationals 2nd, Nationals 10th (2025)",
+    "<strong>HiMCM</strong>: Meritorious (2025), Honorable Mention (2024)",
+    "<strong>UPitt Integration Bee</strong>: 2nd Place"
+  ],
+  "research": {
+    "title": "Research",
+    "body": "Working with Prof. Wencai Liu at Texas A&M on eigenvector behavior in discrete <strong>Random Schrödinger Operators</strong>. We study the Anderson model — a tridiagonal matrix with i.i.d. Bernoulli diagonal entries — and look for <em>localization</em>: exponential decay of eigenvectors caused by disorder in the potential.",
+    "note": "My current task is building a numerically stable computational framework to observe decay behavior at scale without it getting drowned in rounding error."
+  },
+  "reading": [
+    "Evan Chen — <em>EGMO</em>",
+    "Aditya Khurmi — <em>Math Olympiad Number Theory (MONT)</em>",
+    "Beachy & Blair — <em>Abstract Algebra</em>",
+    "Evan Chen — <em>OTIS</em>"
+  ],
+  "projects": [
+    {
+      "title": "A 360-Page Multivariable Calculus Textbook",
+      "body": "What started as a joke from my teacher — <em>\"if you hate this textbook so much, write your own\"</em> — turned into a year-long obsession with clarity. I wrote, illustrated (in iPe + LaTeX), and peer-reviewed monthly editions of a 360-page text that's now a reference for this year's class.",
+      "link": "",
+      "linkLabel": ""
+    },
+    {
+      "title": "SSAMO — Shady Side Academy Math Olympiad",
+      "body": "The first annual math olympiad in our school's history. I pitched it to the school board, recruited problem writers, proctors, and graders from the math team, and designed problems that reward sustained reasoning over quick tricks.",
+      "link": "",
+      "linkLabel": ""
+    },
+    {
+      "title": "Mock AMC on AoPS",
+      "body": "A friend and I compiled our \"shortlist\" of brainstormed problems into a full mock AMC and posted it on the Art of Problem Solving forums. We accidentally predicted a real AMC question about Markov chains and jumping frogs.",
+      "link": "",
+      "linkLabel": ""
+    },
+    {
+      "title": "Self-Working Card Magic",
+      "body": "A COVID-era rabbit hole that became a teaching tool. I invent tricks rooted in modular arithmetic and combinatorial invariants — including a routine that's really just linear congruences mod 52 — and run them for kids at my local Chinese school.",
+      "link": "",
+      "linkLabel": ""
+    }
+  ],
+  "activities": [
+    {
+      "title": "Swimming",
+      "body": "~10 years competitive, 16+ hours/week. 3× WPIAL qualifier, State relay participant (6th in state). This year: chasing an individual State qualification."
+    },
+    {
+      "title": "Piano",
+      "body": "Several hours a week on the bench. The one place I don't have to be \"correct\" or \"fast\" — just make the structure sound beautiful."
+    },
+    {
+      "title": "Skiing",
+      "body": "Every winter and spring break: Vail, Breckenridge, Keystone, Whistler. A sensory counterweight to proof-work and pool laps."
+    },
+    {
+      "title": "DECA",
+      "body": "Where I learned to speak a bulletproof argument out loud — the same confidence I used to pitch SSAMO to the school board."
+    }
+  ],
+  "contact": {
+    "blurb": "Always happy to talk math, swap problems, or trade card-trick secrets.",
+    "email": "your.email@example.com",
+    "links": [
+      { "label": "GitHub", "url": "https://github.com/your-handle" },
+      { "label": "AoPS", "url": "https://artofproblemsolving.com/community/user/yourhandle" }
+    ]
+  }
+}
